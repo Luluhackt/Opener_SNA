@@ -1,0 +1,52 @@
+---
+title: "Netzwerkanalyse_Voracts"
+author: "Luisa Arnold"
+date: "2026-09-21"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(igraph)
+library(tidygraph)
+library(ggraph)
+```
+
+```{r Daten einlesen}
+el <- read.csv("https://raw.githubusercontent.com/Luluhackt/Voracts_SNA/refs/heads/main/edgelist_voracts.csv", header = T, as.is = T, sep = ",")
+nl <- read.csv("https://raw.githubusercontent.com/Luluhackt/Opener_SNA/refs/heads/main/nodelist_opener.csv", header = T, as.is = T, sep = ",")
+el <- el%>%
+  mutate(
+    from = match(from, nl$id),
+    to   = match(to,   nl$id)
+  )
+s <- tbl_graph(nodes = nl, edges = el, directed = TRUE)
+s
+```
+
+```{r Visualisierung}
+library(ggplot2)
+
+set.seed(123)
+ggraph(s, layout = "graphopt") +
+  geom_edge_link(color = "gray50", edge_width = 0.5) +
+  geom_node_point(size = 2, color = "midnightblue", alpha = 0.8) +
+  geom_node_text(aes(label = name), repel = TRUE, size = 3, color = "black") +
+  theme_void() +
+  theme(legend.position = "none")
+```
+
+
+```{r}
+g <- s %>%
+  activate(nodes) %>%
+  mutate(
+    degree_total = centrality_degree()
+  ) %>%
+  arrange(desc(degree_total))
+g
+  
+```
+
+
